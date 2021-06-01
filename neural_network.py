@@ -4,6 +4,7 @@ import os
 import PIL
 import tensorflow as tf # pip install tensorflow
 import pathlib
+import glob
 
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -88,7 +89,7 @@ model.compile(optimizer='adam',
 
 model.summary()
 
-epochs = 50
+epochs = 100
 history = model.fit(
   train_ds,
   validation_data=val_ds,
@@ -118,18 +119,19 @@ plt.title('Training and Validation Loss')
 plt.show()
 
 #Predict on new data
-sunflower_path = './datasource/SI/19.jpg'
+test_images = glob.glob('./test-images/*.jpg')
 
-img = keras.preprocessing.image.load_img(
-    sunflower_path, target_size=(img_height, img_width)
-)
-img_array = keras.preprocessing.image.img_to_array(img)
-img_array = tf.expand_dims(img_array, 0) # Create a batch
+for test_image in test_images:
+  img = keras.preprocessing.image.load_img(
+    test_image, target_size=(img_height, img_width)
+  )
+  img_array = keras.preprocessing.image.img_to_array(img)
+  img_array = tf.expand_dims(img_array, 0) # Create a batch
 
-predictions = model.predict(img_array)
-score = tf.nn.softmax(predictions[0])
+  predictions = model.predict(img_array)
+  score = tf.nn.softmax(predictions[0])
 
-print(
-    "Esta persona {} necesita ayuda con un {:.2f}% de confianza."
-    .format(class_names[np.argmax(score)], 100 * np.max(score))
-)
+  print(
+    "En la foto {}, {} hay personas que necesiten ayuda - {:.2f}% de confianza.".format(test_image, class_names[np.argmax(score)], 100 * np.max(score))
+  )
+
